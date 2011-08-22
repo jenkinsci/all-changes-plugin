@@ -32,7 +32,7 @@
 
   <groupId>org.jenkins-ci.plugins</groupId>
   <artifactId>all-changes</artifactId>
-  <version>1.0</version>
+  <version>1.1-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>All changes plugin</name>
   <description>Shows more changes on the project page</description>
