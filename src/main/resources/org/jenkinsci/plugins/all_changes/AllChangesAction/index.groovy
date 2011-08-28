@@ -109,7 +109,7 @@ private def showEntry(entry, AbstractBuild build, Collection<AbstractBuild> buil
 private def showChangeSet(ChangeLogSet.Entry c) {
   def build = c.parent.build
   def browser = build.project.scm.effectiveBrowser
-  text(c.msgAnnotated)
+  raw(c.msgAnnotated)
   raw(" &#8212; ")
   if (browser?.getChangeSetLink(c)) {
     a(href: browser.getChangeSetLink(c), _("detail"))
