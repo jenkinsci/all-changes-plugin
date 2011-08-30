@@ -86,7 +86,7 @@ public class SubProjectChangesAggregator extends ChangesAggregator {
             if (builder instanceof TriggerBuilder) {
                 TriggerBuilder tBuilder = (TriggerBuilder) builder;
                 for (BlockableBuildTriggerConfig config : tBuilder.getConfigs()) {
-                    for (AbstractProject<?, ?> abstractProject : config.getProjectList()) {
+                    for (AbstractProject<?, ?> abstractProject : config.getProjectList(null)) {
                         if (config.getBlock() != null) {
                             subProjects.add(abstractProject);
                         }
