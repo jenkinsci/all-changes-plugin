@@ -40,8 +40,8 @@ st = namespace("jelly:stapler")
 l.layout(title: _("all.changes.title", my.project.name)) {
   st.include(page: "sidepanel.jelly", it: my.project)
   l.main_panel() {
-    def from = request.getParameter('from')
-    def to = request.getParameter('to')
+    def from = buildNumber(request.getParameter('from'));
+    def to = buildNumber(request.getParameter('to'));
 
     h1(_("All Changes"))
     def builds = Functions.filter(my.project.buildsAsMap, from, to).values()
@@ -50,6 +50,16 @@ l.layout(title: _("all.changes.title", my.project.name)) {
     } else {
       showChanges(builds)
     }
+  }
+}
+
+private buildNumber(String build) {
+  if (build?.isInteger()) {
+    return build
+  } else {
+    def permaLink = my.project.getPermalinks().get(build)
+    def run = permaLink?.resolve(my.project)
+    return run?.number.toString()
   }
 }
 
