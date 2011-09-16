@@ -59,7 +59,7 @@ private buildNumber(String build) {
   } else {
     def permaLink = my.project.getPermalinks().get(build)
     def run = permaLink?.resolve(my.project)
-    return run?.number.toString()
+    return run?.number?.toString()
   }
 }
 
