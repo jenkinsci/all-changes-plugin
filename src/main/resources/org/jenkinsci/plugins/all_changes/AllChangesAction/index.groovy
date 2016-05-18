@@ -79,7 +79,7 @@ private showChanges(Collection<AbstractBuild> builds) {
                       DateFormat.MEDIUM,
                       LocaleProvider.locale).format(build.timestamp.time)})""")
     }
-    ol() {
+    ul() {
       for (entry in changes.keySet()) {
         li() {
           showEntry(entry, build, changes.get(entry))
@@ -119,6 +119,8 @@ private def showEntry(entry, AbstractBuild build, Collection<AbstractBuild> buil
 private def showChangeSet(ChangeLogSet.Entry c) {
   def build = c.parent.build
   def browser = build.project.scm.effectiveBrowser
+  raw(c.getCommitId())
+  raw(" &#187; ")
   raw(c.msgAnnotated)
   raw(" &#8212; ")
   if (browser?.getChangeSetLink(c)) {
