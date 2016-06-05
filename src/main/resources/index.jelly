@@ -25,6 +25,7 @@
 <!--
   This view is used to render the installed plugins page.
 -->
+<?jelly escape-by-default='true'?>
 <div>
   This plugin shows all changes (also from dependent projects, sub-projects, ...) for a project
 </div>

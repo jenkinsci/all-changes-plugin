@@ -38,11 +38,16 @@ t = namespace("/lib/hudson")
 st = namespace("jelly:stapler")
 
 l.main_panel() {
-  def builds = Functions.filter(my.project.buildsAsMap, null, null).values()
-  if (builds.empty) {
-    text(_("No builds."))
-  } else {
-    showChanges(builds)
+  if (my.project != null) {
+    def builds = Functions.filter(my.project.buildsAsMap, null, null).values()
+    if (builds.empty) {
+      text(_("No builds."))
+    } else {
+      showChanges(builds)
+    }
+  }
+  else {
+    h3(_('Job with name '+ my.jenkinsJobName +' is not available.'))
   }
 }
 

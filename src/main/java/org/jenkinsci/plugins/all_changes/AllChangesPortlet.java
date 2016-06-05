@@ -32,37 +32,32 @@ import com.google.common.collect.Sets;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Action;
 import hudson.model.Descriptor;
 import hudson.plugins.view.dashboard.DashboardPortlet;
 import hudson.scm.ChangeLogSet;
-import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.util.List;
 import java.util.Set;
 
 /**
- * Action to calculate all changes for a build
- * It uses ChangesAggregators to to so.
+ * Portlet to calculate all changes for a build
+ * It uses ChangesAggregators to do so.
  *
  * @author suresh
  */
 public class AllChangesPortlet extends DashboardPortlet {
 
-    private String jenkinsJobName;
-    private int numChanges;
+    private final String jenkinsJobName;
+    private final int numChanges;
 
-    private AbstractProject<?, ?> project;
-    transient
-    List<ChangesAggregator> aggregators;
+    private transient List<ChangesAggregator> aggregators;
 
     @DataBoundConstructor
     public AllChangesPortlet(String name, String jenkinsJobName, int numChanges) {
         super(name);
         this.jenkinsJobName = jenkinsJobName;
         this.numChanges = numChanges;
-        project = resolveProject(jenkinsJobName);
     }
 
     public String getJenkinsJobName() {
@@ -129,11 +124,11 @@ public class AllChangesPortlet extends DashboardPortlet {
     }
 
     public AbstractProject<?, ?> getProject() {
-        return project;
+        return resolveProject(jenkinsJobName);
     }
 
     private AbstractProject<?, ?> resolveProject(String name) {
-        return Jenkins.getInstance().getItem(name, Jenkins.getInstance(), AbstractProject.class);
+        return Util.getInstance().getItem(name, Util.getInstance(), AbstractProject.class);
     }
 
     @Extension

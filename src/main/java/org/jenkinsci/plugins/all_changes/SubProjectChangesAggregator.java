@@ -50,7 +50,7 @@ import java.util.Set;
 public class SubProjectChangesAggregator extends ChangesAggregator {
     @Override
     public Collection<AbstractBuild> aggregateBuildsWithChanges(AbstractBuild build) {
-        Plugin parameterizedTrigger = Jenkins.getInstance().getPlugin("parameterized-trigger");
+        Plugin parameterizedTrigger = Util.getInstance().getPlugin("parameterized-trigger");
         if (parameterizedTrigger == null) {
             return ImmutableList.of();
         }
