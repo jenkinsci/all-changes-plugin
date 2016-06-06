@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2011, Stefan Wolf
+ * Copyright (c) 2016, Suresh
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,21 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.jenkinsci.plugins.all_changes;
 
-import hudson.ExtensionList;
-import hudson.ExtensionPoint;
-import hudson.model.AbstractBuild;
 import jenkins.model.Jenkins;
 
-import java.util.Collection;
+/**
+ * Created by suresh on 6/5/2016.
+ */
+public class Util {
 
-public abstract class ChangesAggregator implements ExtensionPoint {
-    public abstract Collection<AbstractBuild> aggregateBuildsWithChanges(AbstractBuild build);
-
-    public static ExtensionList<ChangesAggregator> all() {
-        return Util.getInstance().getExtensionList(ChangesAggregator.class);
+    public static Jenkins getInstance() {
+        Jenkins instance = Jenkins.getInstance();
+        if (instance == null) {
+            throw new IllegalStateException("Jenkins has not been started, or was already shut down");
+        }
+        return instance;
     }
-
 }

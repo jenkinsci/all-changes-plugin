@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2011, Stefan Wolf
+ * Copyright (c) 2016, Suresh
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,20 +22,20 @@
  * THE SOFTWARE.
  */
 
-package org.jenkinsci.plugins.all_changes;
+package org.jenkinsci.plugins.all_changes.AllChangesPortlet
 
-import hudson.ExtensionList;
-import hudson.ExtensionPoint;
-import hudson.model.AbstractBuild;
-import jenkins.model.Jenkins;
+f = namespace(lib.FormTagLib)
+t = namespace("/lib/hudson")
 
-import java.util.Collection;
 
-public abstract class ChangesAggregator implements ExtensionPoint {
-    public abstract Collection<AbstractBuild> aggregateBuildsWithChanges(AbstractBuild build);
+f.entry(field:"name", title: "Name") {
+    f.textbox()
+}
 
-    public static ExtensionList<ChangesAggregator> all() {
-        return Util.getInstance().getExtensionList(ChangesAggregator.class);
-    }
+f.entry(field:"jenkinsJobName", title: "Job Name") {
+    f.textbox()
+}
 
+f.entry(field:"numChanges", title: "Number of changes to show") {
+    f.number(default: 10, clazz:"required number")
 }
