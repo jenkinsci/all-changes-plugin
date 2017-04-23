@@ -1,9 +1,22 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:dp="/hudson/plugins/view/dashboard" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:dp="/hudson/plugins/view/dashboard"
+    xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
     <dp:decorate portlet="${it}">
         <tr><td>
             <div>
-                <st:include page="allchangesportlet.groovy"/>
+                <j:choose>
+                    <j:when test="${it.projectAction != null}">
+                        <j:if test="${it.projectAction.class.name == 'org.jenkinsci.plugins.all_changes.AllChangesAction'}">
+                            <st:include page="main.groovy" it="${it.projectAction}" class="org.jenkinsci.plugins.all_changes.AllChangesAction" />
+                        </j:if>
+                        <j:if test="${it.projectAction.class.name == 'org.jenkinsci.plugins.all_changes.AllChangesWorkflowAction'}">
+                            <st:include page="main.groovy" it="${it.projectAction}" class="org.jenkinsci.plugins.all_changes.AllChangesWorkflowAction" />
+                        </j:if>
+                    </j:when>
+                    <j:otherwise>
+                        <h3>${'Job with name '+ it.jenkinsJobName +' is not available.'}</h3>
+                    </j:otherwise>
+                </j:choose>
             </div>
         </td></tr>
     </dp:decorate>

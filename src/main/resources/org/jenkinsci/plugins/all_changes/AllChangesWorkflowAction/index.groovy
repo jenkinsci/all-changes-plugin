@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2011, Stefan Wolf
+ * Copyright (c) 2017, Suresh
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package org.jenkinsci.plugins.all_changes.AllChangesAction
+package org.jenkinsci.plugins.all_changes.AllChangesWorkflowAction
 
 import com.google.common.collect.Multimap
 import hudson.Functions
@@ -40,92 +40,9 @@ st = namespace("jelly:stapler")
 l.layout(title: _("all.changes.title", my.project.name)) {
   st.include(page: "sidepanel.jelly", it: my.project)
   l.main_panel() {
-    def from = buildNumber(request.getParameter('from'));
-    def to = buildNumber(request.getParameter('to'));
-
     h1(_("All Changes"))
-    def builds = Functions.filter(my.project.buildsAsMap, from, to).values()
-    if (builds.empty) {
-      text(_("No builds."))
-    } else {
-      showChanges(builds)
-    }
+    st.include(page: "main.groovy", it: my)
   }
 }
 
-private buildNumber(String build) {
-  if (build?.isInteger()) {
-    return build
-  } else {
-    def permaLink = my.project.getPermalinks().get(build)
-    def run = permaLink?.resolve(my.project)
-    return run?.number?.toString()
-  }
-}
 
-private showChanges(Collection<WorkflowRun> builds) {
-  boolean hadChanges = false;
-  for (WorkflowRun build in builds) {
-    Multimap<ChangeLogSet.Entry, WorkflowRun> changes = my.getAllChanges(build);
-    if (changes.empty) {
-      continue
-    }
-    hadChanges = true
-    h2() {
-      a(href: "${my.project.absoluteUrl}/${build.number}/changes",
-              """${build.displayName}  (${
-                DateFormat.getDateTimeInstance(
-                      DateFormat.MEDIUM,
-                      DateFormat.MEDIUM,
-                      LocaleProvider.locale).format(build.timestamp.time)})""")
-    }
-    ul() {
-      for (entry in changes.keySet()) {
-        li() {
-          showEntry(entry, build, changes.get(entry))
-        }
-      }
-    }
-  }
-  if (!hadChanges) {
-    text(_("No changes in any of the builds."))
-  }
-}
-
-private def showEntry(entry, WorkflowRun build, Collection<WorkflowRun> builds) {
-  showChangeSet(entry)
-  boolean firstDrawn = false
-  for (WorkflowRun b in builds) {
-    if (b != build) {
-      if (!firstDrawn) {
-        text(" (")
-        firstDrawn = true
-      }
-      else {
-        text(", ")
-      }
-      a(href: "${rootURL}/${b.project.url}") {text(b.project.displayName)}
-      st.nbsp()
-      a(href: "${rootURL}/${b.url}") {
-        text(b.displayName)
-      }
-    }
-  }
-  if (firstDrawn) {
-    text(")")
-  }
-}
-
-private def showChangeSet(ChangeLogSet.Entry c) {
-  def build = c.parent.run
-  def browser = c.parent.browser
-  raw(c.getCommitId())
-  raw(" &#187; ")
-  raw(c.msgAnnotated)
-  raw(" &#8212; ")
-  if (browser?.getChangeSetLink(c)) {
-    a(href: browser.getChangeSetLink(c), _("detail"))
-  } else {
-    a(href: "${build.absoluteUrl}changes", _("detail"))
-  }
-}

@@ -46,11 +46,17 @@ import java.util.Set;
 public class AllChangesAction implements Action {
 
     private AbstractProject<?, ?> project;
+    private int numChanges = 0;
     transient
     List<ChangesAggregator> aggregators;
 
     AllChangesAction(AbstractProject<?, ?> project) {
         this.project = project;
+    }
+
+    AllChangesAction(AbstractProject<?, ?> project, int numChanges) {
+        this.project = project;
+        this.numChanges = numChanges;
     }
 
     public String getIconFileName() {
@@ -118,5 +124,9 @@ public class AllChangesAction implements Action {
 
     public AbstractProject<?, ?> getProject() {
         return project;
+    }
+
+    public int getNumChanges() {
+        return numChanges;
     }
 }
