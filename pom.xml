@@ -33,7 +33,7 @@
 
   <groupId>org.jenkins-ci.plugins</groupId>
   <artifactId>all-changes</artifactId>
-  <version>1.5</version>
+  <version>1.6-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>All changes plugin</name>
   <description>Shows more changes on the project page</description>
@@ -114,6 +114,6 @@ artifacts that we need -->
     <connection>scm:git:git://github.com/jenkinsci/all-changes-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/all-changes-plugin.git</developerConnection>
     <url>http://github.com/jenkinsci/all-changes-plugin</url>
-    <tag>all-changes-1.5</tag>
+    <tag>HEAD</tag>
   </scm>
 </project>
