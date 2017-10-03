@@ -47,7 +47,8 @@ import java.util.Set;
  * @author wolfs
  */
 @Extension
-public class SubProjectChangesAggregator extends ChangesAggregator {
+public class SubProjectChangesAggregator extends ChangesAggregator<AbstractBuild> {
+
     @Override
     public Collection<AbstractBuild> aggregateBuildsWithChanges(AbstractBuild build) {
         Plugin parameterizedTrigger = Util.getInstance().getPlugin("parameterized-trigger");

@@ -28,22 +28,69 @@ import com.google.common.collect.ImmutableList;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Run;
+import hudson.tasks.Fingerprinter;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author wolfs
  */
 @Extension
-public class DependencyChangesAggregator extends ChangesAggregator {
+public class DependencyChangesAggregator extends ChangesAggregator<Run> {
+
     @Override
-    public Collection<AbstractBuild> aggregateBuildsWithChanges(AbstractBuild build) {
-        ImmutableList.Builder<AbstractBuild> builder = ImmutableList.<AbstractBuild>builder();
-        Map<AbstractProject, AbstractBuild.DependencyChange> depChanges = build.getDependencyChanges((AbstractBuild) build.getPreviousBuild());
+    public Collection<Run> aggregateBuildsWithChanges(Run build) {
+        ImmutableList.Builder<Run> builder = ImmutableList.builder();
+        Map<AbstractProject, AbstractBuild.DependencyChange> depChanges = getDependencyChanges(build, build.getPreviousBuild());
         for (AbstractBuild.DependencyChange depChange : depChanges.values()) {
             builder.addAll(depChange.getBuilds());
         }
         return builder.build();
+    }
+
+    /**
+     * Gets the changes in the dependency between two given builds using {@link Fingerprinter.FingerprintAction}.
+     *
+     * <p>This implements the functionality from {@link AbstractBuild#getDependencyChanges(AbstractBuild)} using
+     * {@link Run} instead of {@link AbstractBuild} as input build parameters, so that this aggregator can be used by
+     * the {@link AllChangesWorkflowAction} as well.
+     *
+     * @param build the current build to find dependencies to
+     * @param otherBuild another build to find dependencies from
+     * @return a map of projects to dependency changes or an empty map if there are no fingerprint actions or the other job is null
+     * @see AbstractBuild#getDependencyChanges(AbstractBuild)
+     */
+    private Map<AbstractProject, AbstractBuild.DependencyChange> getDependencyChanges(Run build, Run otherBuild) {
+
+        if (otherBuild == null) {
+            return Collections.emptyMap();
+        }
+
+        Fingerprinter.FingerprintAction currentBuildFingerprints = build.getAction(Fingerprinter.FingerprintAction.class);
+        Fingerprinter.FingerprintAction previousBuildFingerprints = otherBuild.getAction(Fingerprinter.FingerprintAction.class);
+
+        if (currentBuildFingerprints == null || previousBuildFingerprints == null) {
+            return Collections.emptyMap();
+        }
+
+        Map<AbstractProject,Integer> currentBuildDependencies = currentBuildFingerprints.getDependencies(true);
+        Map<AbstractProject,Integer> previousBuildDependencies = previousBuildFingerprints.getDependencies(true);
+
+        Map<AbstractProject, AbstractBuild.DependencyChange> changes = new HashMap<>();
+
+        for (Map.Entry<AbstractProject, Integer> entry : previousBuildDependencies.entrySet()) {
+            AbstractProject dependencyProject = entry.getKey();
+            Integer oldNumber = entry.getValue();
+            Integer newNumber = currentBuildDependencies.get(dependencyProject);
+            if (newNumber != null && oldNumber.compareTo(newNumber) < 0) {
+                changes.put(dependencyProject, new AbstractBuild.DependencyChange(dependencyProject, oldNumber, newNumber));
+            }
+        }
+
+        return changes;
     }
 }

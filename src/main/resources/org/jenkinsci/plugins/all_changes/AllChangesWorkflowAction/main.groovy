@@ -24,6 +24,7 @@
 
 import com.google.common.collect.Multimap
 import hudson.Functions
+import hudson.model.Run
 import hudson.scm.ChangeLogSet
 import org.jenkinsci.plugins.workflow.job.WorkflowRun
 import org.jvnet.localizer.LocaleProvider
@@ -61,7 +62,7 @@ private showChanges(Collection<WorkflowRun> builds) {
     def changedBuildCount = 1;
     boolean hadChanges = false;
     for (WorkflowRun build in builds) {
-        Multimap<ChangeLogSet.Entry, WorkflowRun> changes = my.getAllChanges(build);
+        Multimap<ChangeLogSet.Entry, Run> changes = my.getAllChanges(build);
         if (changes.empty) {
             continue
         }
@@ -92,10 +93,10 @@ private showChanges(Collection<WorkflowRun> builds) {
     }
 }
 
-private def showEntry(entry, WorkflowRun build, Collection<WorkflowRun> builds) {
+private def showEntry(entry, WorkflowRun build, Collection<Run> builds) {
     showChangeSet(entry)
     boolean firstDrawn = false
-    for (WorkflowRun b in builds) {
+    for (Run b in builds) {
         if (b != build) {
             if (!firstDrawn) {
                 text(" (")

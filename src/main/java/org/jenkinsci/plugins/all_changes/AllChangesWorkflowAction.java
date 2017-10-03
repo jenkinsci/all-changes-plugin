@@ -26,10 +26,11 @@ package org.jenkinsci.plugins.all_changes;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import hudson.model.AbstractBuild;
 import hudson.model.Action;
+import hudson.model.Run;
 import hudson.scm.ChangeLogSet;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -40,6 +41,7 @@ public class AllChangesWorkflowAction implements Action {
 
     private WorkflowJob project;
     private int numChanges = 0;
+    private DependencyChangesAggregator aggregator;
 
     AllChangesWorkflowAction(WorkflowJob project) {
         this.project = project;
@@ -63,40 +65,69 @@ public class AllChangesWorkflowAction implements Action {
     }
 
     /**
-     * Returns all changes which contribute to a build.
+     * Returns all changes which contribute to the given build.
      *
-     * @param build
-     * @return
+     * @param build the build from which to get dependency changes
+     * @return a map of change log sets to builds or empty map if none were found
      */
-    public Multimap<ChangeLogSet.Entry, WorkflowRun> getAllChanges(WorkflowRun build) {
-        Set<WorkflowRun> builds = getContributingBuilds(build);
+    public Multimap<ChangeLogSet.Entry, Run> getAllChanges(WorkflowRun build) {
+
+        Set<Run> builds = getContributingBuilds(build);
+
         Multimap<String, ChangeLogSet.Entry> changes = ArrayListMultimap.create();
-        for (WorkflowRun changedBuild : builds) {
-            for (ChangeLogSet changeLogSet : changedBuild.getChangeSets()) {
-                ChangeLogSet<ChangeLogSet.Entry> changeSet = (ChangeLogSet<ChangeLogSet.Entry>)changeLogSet;
+        for (Run changedBuild : builds) {
+            if (changedBuild instanceof WorkflowRun) {
+                for (ChangeLogSet changeLogSet : ((WorkflowRun) changedBuild).getChangeSets()) {
+                    ChangeLogSet<ChangeLogSet.Entry> changeSet = (ChangeLogSet<ChangeLogSet.Entry>)changeLogSet;
+                    for (ChangeLogSet.Entry entry : changeSet) {
+                        changes.put(entry.getCommitId() + entry.getMsgAnnotated() + entry.getTimestamp(), entry);
+                    }
+                }
+            } else if (changedBuild instanceof AbstractBuild) {
+                ChangeLogSet<ChangeLogSet.Entry> changeSet = ((AbstractBuild) changedBuild).getChangeSet();
                 for (ChangeLogSet.Entry entry : changeSet) {
                     changes.put(entry.getCommitId() + entry.getMsgAnnotated() + entry.getTimestamp(), entry);
                 }
             }
         }
-        Multimap<ChangeLogSet.Entry, WorkflowRun> change2Build = HashMultimap.create();
+
+        Multimap<ChangeLogSet.Entry, Run> change2Build = HashMultimap.create();
         for (String changeKey : changes.keySet()) {
             ChangeLogSet.Entry change = changes.get(changeKey).iterator().next();
             for (ChangeLogSet.Entry entry : changes.get(changeKey)) {
-                change2Build.put(change, (WorkflowRun) entry.getParent().getRun());
+                change2Build.put(change, entry.getParent().getRun());
             }
         }
+
         return change2Build;
     }
 
     /**
-     * Uses all ChangesAggregators to calculate the contributing builds
+     * Uses DependencyChangesAggregator to calculate the contributing builds.
      *
-     * @return all changes which contribute to the given build
+     * @param build the workflow build to get dependencies for
+     * @return all changed builds which contribute to the given build or empty set if none were found
      */
-    public Set<WorkflowRun> getContributingBuilds(WorkflowRun build) {
-        Set<WorkflowRun> builds = Sets.newHashSet();
+    public Set<Run> getContributingBuilds(WorkflowRun build) {
+
+        Set<Run> builds = Sets.newHashSet();
         builds.add(build);
+
+        if (aggregator == null) {
+            aggregator = new DependencyChangesAggregator();
+        }
+
+        int size = 0;
+        // Saturate the build Set
+        do {
+            size = builds.size();
+            Set<Run> newBuilds = Sets.newHashSet();
+            for (Run depBuild : builds) {
+                newBuilds.addAll(aggregator.aggregateBuildsWithChanges(depBuild));
+            }
+            builds.addAll(newBuilds);
+        } while (size < builds.size());
+
         return builds;
     }
 
@@ -106,5 +137,9 @@ public class AllChangesWorkflowAction implements Action {
 
     public int getNumChanges() {
         return numChanges;
+    }
+
+    public void setAggregator(DependencyChangesAggregator aggregator) {
+        this.aggregator = aggregator;
     }
 }
