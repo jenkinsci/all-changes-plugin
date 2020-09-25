@@ -26,16 +26,15 @@ package org.jenkinsci.plugins.all_changes;
 
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
-import hudson.model.AbstractBuild;
-import jenkins.model.Jenkins;
+import hudson.model.Run;
 
 import java.util.Collection;
 
-public abstract class ChangesAggregator implements ExtensionPoint {
-    public abstract Collection<AbstractBuild> aggregateBuildsWithChanges(AbstractBuild build);
+public abstract class ChangesAggregator<T extends Run> implements ExtensionPoint {
+
+    public abstract Collection<T> aggregateBuildsWithChanges(T build);
 
     public static ExtensionList<ChangesAggregator> all() {
         return Util.getInstance().getExtensionList(ChangesAggregator.class);
     }
-
 }
